@@ -238,6 +238,7 @@ export function OrdersListPage() {
 
             {selected.size > 0 && (
               <button type="button" className="vtp-btn-outline" onClick={handlePrintSelected} disabled={printing}>
+                {printing && <span className="vtp-spinner" />}
                 In nhãn ({selected.size})
               </button>
             )}
@@ -261,13 +262,13 @@ export function OrdersListPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
-                      Đang tải dữ liệu đơn hàng...
+                    <td colSpan={6} className="vtp-table-empty">
+                      <span className="vtp-spinner" /> Đang tải dữ liệu đơn hàng...
                     </td>
                   </tr>
                 ) : data.items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                    <td colSpan={6} className="vtp-table-empty">
                       Không có đơn hàng nào
                     </td>
                   </tr>
@@ -311,7 +312,7 @@ export function OrdersListPage() {
           </div>
 
           {allZero && (
-            <p style={{ fontSize: '12px', color: '#9ca3af', textAlign: 'center', marginBottom: '12px' }}>
+            <p className="vtp-chart-empty-note">
               Chưa có đơn hàng trong 7 ngày qua
             </p>
           )}

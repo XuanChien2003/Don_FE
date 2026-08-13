@@ -42,7 +42,14 @@ export function OrderDetailPage() {
     }
   }
 
-  if (loading) return <p style={{ padding: '24px', color: '#6b7280' }}>Đang tải chi tiết đơn hàng...</p>;
+  if (loading) {
+    return (
+      <div className="vtp-page-loading">
+        <span className="vtp-spinner vtp-spinner-lg" />
+        <span>Đang tải chi tiết đơn hàng...</span>
+      </div>
+    );
+  }
 
   if (error || !order) {
     return (
@@ -184,6 +191,7 @@ export function OrderDetailPage() {
           {/* Action button */}
           <div style={{ marginTop: '16px' }}>
             <button type="button" className="vtp-btn-outline" onClick={handlePrintLabel} disabled={labelLoading}>
+              {labelLoading && <span className="vtp-spinner" />}
               {labelLoading ? 'Đang tạo nhãn...' : 'In nhãn PDF'}
             </button>
           </div>
@@ -195,7 +203,7 @@ export function OrderDetailPage() {
 
           <div className="vtp-timeline">
             {eventsList.length === 0 ? (
-              <div style={{ color: '#9ca3af', fontSize: '13px', fontStyle: 'italic', padding: '12px 0' }}>
+              <div className="vtp-timeline-empty">
                 Chưa có lịch sử sự kiện nào.
               </div>
             ) : (

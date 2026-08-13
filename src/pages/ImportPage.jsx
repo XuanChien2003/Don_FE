@@ -52,21 +52,21 @@ export function ImportPage() {
   }
 
   return (
-    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', color: '#111827' }}>Import đơn hàng từ Excel</h2>
-      <p style={{ color: '#6b7280', fontSize: '13.5px', marginBottom: '20px' }}>
-        Tối đa 500 dòng/lần. Cột bắt buộc: <code>vtpCode</code>, <code>receiverName</code>. Cột tùy chọn:{' '}
-        <code>receiverPhone</code>, <code>receiverAddress</code>, <code>productInfo</code>, <code>weightKg</code>.
-      </p>
+    <div className="vtp-page-container">
+      <div className="vtp-page-header">
+        <h2 className="vtp-page-title">Import đơn hàng từ Excel</h2>
+        <p className="vtp-page-subtitle">
+          Tối đa 500 dòng/lần. Cột bắt buộc: <code>vtpCode</code>, <code>receiverName</code>. Cột tùy chọn:{' '}
+          <code>receiverPhone</code>, <code>receiverAddress</code>, <code>productInfo</code>, <code>weightKg</code>.
+        </p>
+      </div>
 
       <div className="vtp-card">
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleSubmit} className="vtp-form-stack">
           {isAdmin && (
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
-                Đối tác sở hữu đơn hàng
-              </label>
-              <select className="vtp-select" style={{ width: '100%' }} value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
+            <div className="vtp-input-group">
+              <label className="vtp-input-label">Đối tác sở hữu đơn hàng</label>
+              <select className="vtp-select vtp-field-full" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
                 <option value="">-- Chọn đối tác --</option>
                 {partners.map((p) => (
                   <option key={p.publicId} value={p.publicId}>
@@ -77,15 +77,12 @@ export function ImportPage() {
             </div>
           )}
 
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, color: '#374151', marginBottom: '6px' }}>
-              File Excel (.xlsx / .xls)
-            </label>
+          <div className="vtp-input-group">
+            <label className="vtp-input-label">File Excel (.xlsx / .xls)</label>
             <input
               type="file"
               accept=".xlsx,.xls"
-              className="vtp-search-input"
-              style={{ paddingLeft: '12px', paddingTop: '6px' }}
+              className="vtp-file-input"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </div>
@@ -94,6 +91,7 @@ export function ImportPage() {
 
           <div>
             <button type="submit" className="vtp-btn-primary" disabled={submitting}>
+              {submitting && <span className="vtp-spinner vtp-spinner-light" />}
               {submitting ? 'Đang import...' : 'Import đơn hàng'}
             </button>
           </div>
@@ -101,10 +99,10 @@ export function ImportPage() {
       </div>
 
       {result && (
-        <div className="vtp-card" style={{ marginTop: '20px' }}>
-          <p style={{ marginBottom: '12px', fontSize: '14px', color: '#374151' }}>
-            Tổng {result.totalRows} dòng - <strong style={{ color: '#16a34a' }}>{result.successCount} thành công</strong>,{' '}
-            <span style={{ color: '#dc2626' }}>{result.failureCount} lỗi</span>.
+        <div className="vtp-card vtp-mt-lg">
+          <p className="vtp-result-summary">
+            Tổng {result.totalRows} dòng - <strong className="vtp-text-success">{result.successCount} thành công</strong>,{' '}
+            <span className="vtp-text-danger">{result.failureCount} lỗi</span>.
           </p>
 
           <div className="vtp-table-wrapper">

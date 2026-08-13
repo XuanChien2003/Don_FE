@@ -73,6 +73,7 @@ export function LoginPage() {
             {error && <div className="vtp-alert-error">{error}</div>}
 
             <button type="submit" className="vtp-login-submit-btn" disabled={submitting}>
+              {submitting && <span className="vtp-spinner vtp-spinner-light" />}
               {submitting ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP'}
             </button>
           </form>
