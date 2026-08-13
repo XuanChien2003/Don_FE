@@ -1,11 +1,30 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { fetchBatchLabelPdf, listOrders } from '../api/orders';
-import { listPartners } from '../api/partners';
+import { getDashboardStats } from '../api/dashboard';
 import { Pagination } from '../components/Pagination';
 
-const EMPTY_FILTERS = { internalCode: '', vtpCode: '', receiverPhone: '', currentStatus: '', partnerId: '' };
+export function getStatusBadgeInfo(status) {
+  if (!status) return { label: 'Chờ XL', className: 'badge-secondary' };
+  const s = String(status).toLowerCase();
+  if (s.includes('đang vc') || s.includes('vận chuyển') || s.includes('dang vc')) {
+    return { label: 'Đang VC', className: 'badge-warning' };
+  }
+  if (s.includes('đã giao') || s.includes('da giao') || s.includes('giao thành công')) {
+    return { label: 'Đã giao', className: 'badge-success' };
+  }
+  if (s.includes('phát') || s.includes('đang phát')) {
+    return { label: 'Đang phát', className: 'badge-info' };
+  }
+  if (s.includes('chờ') || s.includes('xl') || s.includes('mới')) {
+    return { label: 'Chờ XL', className: 'badge-secondary' };
+  }
+  if (s.includes('hoàn') || s.includes('hủy') || s.includes('thất bại')) {
+    return { label: 'Hoàn', className: 'badge-danger' };
+  }
+  return { label: status, className: 'badge-secondary' };
+}
 
 function openPdfBlob(blob) {
   const url = URL.createObjectURL(blob);
@@ -15,89 +34,84 @@ function openPdfBlob(blob) {
 
 export function OrdersListPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
-
-  const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(20);
+  const [limit] = useState(10);
+
   const [data, setData] = useState({ items: [], total: 0 });
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [partners, setPartners] = useState([]);
   const [selected, setSelected] = useState(() => new Set());
   const [printing, setPrinting] = useState(false);
 
-  useEffect(() => {
-    if (!isAdmin) return;
-    listPartners()
-      .then((res) => setPartners(res.items))
-      .catch(() => {});
-  }, [isAdmin]);
-
-  const load = useCallback(async () => {
+  // Fetch stats and order list from Backend API
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await listOrders({ ...appliedFilters, page, limit });
-      setData(res);
-      setSelected(new Set());
+      const [statsRes, ordersRes] = await Promise.allSettled([
+        getDashboardStats(),
+        listOrders({
+          internalCode: searchQuery,
+          currentStatus: statusFilter,
+          page,
+          limit,
+        }),
+      ]);
+
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value);
+      }
+
+      if (ordersRes.status === 'fulfilled' && ordersRes.value?.items) {
+        setData(ordersRes.value);
+      }
     } catch (err) {
-      setError(err.message || 'Không tải được danh sách đơn hàng');
+      setError(err.message || 'Không tải được dữ liệu từ hệ thống');
     } finally {
       setLoading(false);
     }
-  }, [appliedFilters, page, limit]);
+  }, [searchQuery, statusFilter, page, limit]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    loadData();
+  }, [loadData]);
 
-  function handleFilterSubmit(e) {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
-    setAppliedFilters(filters);
-  }
+    loadData();
+  };
 
-  function handleReset() {
-    setFilters(EMPTY_FILTERS);
-    setAppliedFilters(EMPTY_FILTERS);
-    setPage(1);
-  }
+  // Export orders to CSV file
+  const handleExportCSV = () => {
+    const itemsToExport = data.items || [];
+    if (itemsToExport.length === 0) return;
+    const headers = ['MÃ ĐƠN', 'TRẠNG THÁI', 'NGƯỜI NHẬN', 'DỊCH VỤ', 'COD', 'CẬP NHẬT'];
+    const rows = itemsToExport.map((o) => [
+      o.internalCode,
+      o.currentStatus || 'Chờ XL',
+      `"${o.receiverName || ''}"`,
+      o.serviceName || o.productInfo || 'VHT',
+      o.cod != null ? o.cod : 0,
+      new Date(o.currentStatusDate || Date.now()).toLocaleString('vi-VN'),
+    ]);
 
-  function toggleSelected(internalCode) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(internalCode)) {
-        next.delete(internalCode);
-      } else {
-        next.add(internalCode);
-      }
-      return next;
-    });
-  }
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `VTP_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const allOnPageSelected = useMemo(
-    () => data.items.length > 0 && data.items.every((o) => selected.has(o.internalCode)),
-    [data.items, selected]
-  );
-
-  function toggleSelectAllOnPage() {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (allOnPageSelected) {
-        data.items.forEach((o) => next.delete(o.internalCode));
-      } else {
-        data.items.forEach((o) => next.add(o.internalCode));
-      }
-      return next;
-    });
-  }
-
-  async function handlePrintSelected() {
+  const handlePrintSelected = async () => {
     if (selected.size === 0) return;
     setPrinting(true);
-    setError('');
     try {
       const blob = await fetchBatchLabelPdf({ internalCodes: [...selected] });
       openPdfBlob(blob);
@@ -106,110 +120,220 @@ export function OrdersListPage() {
     } finally {
       setPrinting(false);
     }
-  }
+  };
+
+  // Format COD display string
+  const formatCod = (item) => {
+    const val = item.cod ?? 0;
+    if (!val) return '0đ';
+    return `${val.toLocaleString('vi-VN')}đ`;
+  };
+
+  // Format date display (e.g., "10/11 11:07")
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (Number.isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month} ${hours}:${mins}`;
+  };
+
+  // Real backend metrics
+  const totalCount = stats?.totalOrders ?? data.total ?? 0;
+  const inTransitCount = stats?.inTransitCount ?? (stats?.byStatus?.find((s) => s.status.toLowerCase().includes('vc'))?.count || 0);
+  const deliveredCount = stats?.deliveredCount ?? (stats?.byStatus?.find((s) => s.status.toLowerCase().includes('giao'))?.count || 0);
+  const pendingCount = stats?.pendingCount ?? (stats?.byStatus?.find((s) => s.status.toLowerCase().includes('chờ'))?.count || 0);
+  const growthText = stats?.todayGrowth || '';
+
+  // Real 7-day chart metrics from BE
+  // chart7Days items: { label: 'T2', count: 5 (actual orders), val: 80 (% height) }
+  const chartDays = stats?.chart7Days || [
+    { label: 'CN', count: 0, val: 0 },
+    { label: 'T2', count: 0, val: 0 },
+    { label: 'T3', count: 0, val: 0 },
+    { label: 'T4', count: 0, val: 0 },
+    { label: 'T5', count: 0, val: 0 },
+    { label: 'T6', count: 0, val: 0 },
+    { label: 'T7', count: 0, val: 0 },
+  ];
+
+  const allZero = chartDays.every((d) => !d.count);
 
   return (
     <div>
-      <h1>Đơn hàng</h1>
+      {/* Top 4 Stat Cards */}
+      <div className="vtp-stats-row">
+        <div className="vtp-stat-card">
+          <div className="vtp-stat-label">TỔNG ĐƠN</div>
+          <div className="vtp-stat-value">{totalCount.toLocaleString()}</div>
+          {growthText && <div className="vtp-stat-subtext">{growthText}</div>}
+        </div>
 
-      <form className="filter-bar" onSubmit={handleFilterSubmit}>
-        <input
-          placeholder="Mã đơn (internalCode)"
-          value={filters.internalCode}
-          onChange={(e) => setFilters((f) => ({ ...f, internalCode: e.target.value }))}
-        />
-        <input
-          placeholder="Mã VTP"
-          value={filters.vtpCode}
-          onChange={(e) => setFilters((f) => ({ ...f, vtpCode: e.target.value }))}
-        />
-        <input
-          placeholder="SĐT người nhận"
-          value={filters.receiverPhone}
-          onChange={(e) => setFilters((f) => ({ ...f, receiverPhone: e.target.value }))}
-        />
-        <input
-          placeholder="Trạng thái"
-          value={filters.currentStatus}
-          onChange={(e) => setFilters((f) => ({ ...f, currentStatus: e.target.value }))}
-        />
-        {isAdmin && (
-          <select value={filters.partnerId} onChange={(e) => setFilters((f) => ({ ...f, partnerId: e.target.value }))}>
-            <option value="">-- Tất cả đối tác --</option>
-            {partners.map((p) => (
-              <option key={p.publicId} value={p.publicId}>
-                {p.companyName}
-              </option>
-            ))}
-          </select>
-        )}
-        <button type="submit">Tìm</button>
-        <button type="button" onClick={handleReset}>
-          Xóa lọc
-        </button>
-      </form>
+        <div className="vtp-stat-card">
+          <div className="vtp-stat-label">ĐANG VẬN CHUYỂN</div>
+          <div className="vtp-stat-value">{inTransitCount.toLocaleString()}</div>
+        </div>
 
-      <div className="list-toolbar">
-        <button type="button" disabled={selected.size === 0 || printing} onClick={handlePrintSelected}>
-          {printing ? 'Đang tạo PDF...' : `In nhãn đã chọn (${selected.size})`}
-        </button>
+        <div className="vtp-stat-card">
+          <div className="vtp-stat-label">ĐÃ GIAO</div>
+          <div className="vtp-stat-value">{deliveredCount.toLocaleString()}</div>
+        </div>
+
+        <div className="vtp-stat-card">
+          <div className="vtp-stat-label">CHỜ XỬ LÝ</div>
+          <div className="vtp-stat-value">{pendingCount.toLocaleString()}</div>
+        </div>
       </div>
 
-      {error && <div className="form-error">{error}</div>}
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : (
-        <>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>
-                  <input type="checkbox" checked={allOnPageSelected} onChange={toggleSelectAllOnPage} />
-                </th>
-                <th>Mã đơn</th>
-                <th>Mã VTP</th>
-                {isAdmin && <th>Đối tác</th>}
-                <th>Người nhận</th>
-                <th>SĐT</th>
-                <th>Trạng thái</th>
-                <th>Cập nhật</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.length === 0 && (
+      {/* Main 2-Column Section */}
+      <div className="vtp-layout-grid">
+        {/* Left Column: Filter + Orders Table Card */}
+        <div className="vtp-card">
+          <form className="vtp-filter-bar" onSubmit={handleSearchSubmit}>
+            <div className="vtp-search-box">
+              <svg className="vtp-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                className="vtp-search-input"
+                placeholder="Tìm mã đơn, SĐT, người nhận..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <select
+              className="vtp-select"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="Đang VC">Đang VC</option>
+              <option value="Đã giao">Đã giao</option>
+              <option value="Đang phát">Đang phát</option>
+              <option value="Chờ XL">Chờ XL</option>
+              <option value="Hoàn">Hoàn</option>
+            </select>
+
+            <button type="submit" className="vtp-btn-primary">
+              Tìm
+            </button>
+
+            <button type="button" className="vtp-btn-outline" onClick={handleExportCSV}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export CSV
+            </button>
+
+            {selected.size > 0 && (
+              <button type="button" className="vtp-btn-outline" onClick={handlePrintSelected} disabled={printing}>
+                In nhãn ({selected.size})
+              </button>
+            )}
+          </form>
+
+          {error && <div className="vtp-alert-error">{error}</div>}
+
+          {/* Table */}
+          <div className="vtp-table-wrapper">
+            <table className="vtp-table">
+              <thead>
                 <tr>
-                  <td colSpan={isAdmin ? 8 : 7} className="empty-cell">
-                    Không có đơn hàng nào
-                  </td>
+                  <th>MÃ ĐƠN</th>
+                  <th>TRẠNG THÁI</th>
+                  <th>NGƯỜI NHẬN</th>
+                  <th>DỊCH VỤ</th>
+                  <th>COD</th>
+                  <th>CẬP NHẬT</th>
                 </tr>
-              )}
-              {data.items.map((order) => (
-                <tr key={order.internalCode}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selected.has(order.internalCode)}
-                      onChange={() => toggleSelected(order.internalCode)}
-                    />
-                  </td>
-                  <td>
-                    <Link to={`/orders/${order.internalCode}`}>{order.internalCode}</Link>
-                  </td>
-                  <td>{order.vtpCode}</td>
-                  {isAdmin && <td>{order.partner?.companyName || '-'}</td>}
-                  <td>{order.receiverName}</td>
-                  <td>{order.receiverPhone || '-'}</td>
-                  <td>
-                    <span className="status-badge">{order.currentStatus}</span>
-                  </td>
-                  <td>{new Date(order.currentStatusDate).toLocaleString('vi-VN')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <Pagination page={data.page || page} limit={data.limit || limit} total={data.total} onPageChange={setPage} />
-        </>
-      )}
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                      Đang tải dữ liệu đơn hàng...
+                    </td>
+                  </tr>
+                ) : data.items.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '24px', color: '#6b7280' }}>
+                      Không có đơn hàng nào
+                    </td>
+                  </tr>
+                ) : (
+                  data.items.map((order) => {
+                    const badge = getStatusBadgeInfo(order.currentStatus);
+                    return (
+                      <tr key={order.internalCode}>
+                        <td className="vtp-order-code">
+                          <Link to={`/orders/${order.internalCode}`}>{order.internalCode}</Link>
+                        </td>
+                        <td>
+                          <span className={`vtp-badge ${badge.className}`}>{badge.label}</span>
+                        </td>
+                        <td>{order.receiverName || '-'}</td>
+                        <td>{order.serviceName || order.productInfo || '-'}</td>
+                        <td>{formatCod(order)}</td>
+                        <td>{formatDate(order.currentStatusDate)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <Pagination
+            page={data.page || page}
+            limit={data.limit || limit}
+            total={data.total || 0}
+            onPageChange={(newPage) => setPage(newPage)}
+          />
+        </div>
+
+        {/* Right Column: 7-Day Chart Card */}
+        <div className="vtp-card">
+          <div className="vtp-chart-header">
+            <span>📊</span>
+            <span>Đơn 7 ngày</span>
+          </div>
+
+          {allZero && (
+            <p style={{ fontSize: '12px', color: '#9ca3af', textAlign: 'center', marginBottom: '12px' }}>
+              Chưa có đơn hàng trong 7 ngày qua
+            </p>
+          )}
+          <div className="vtp-chart-container">
+            {chartDays.map((item) => (
+              <div key={item.label} className="vtp-bar-group">
+                <div
+                  className="vtp-bar"
+                  style={{ height: `${allZero ? 15 : Math.min(100, Math.max(6, item.val))}%`, opacity: allZero ? 0.2 : 1 }}
+                  title={`${item.label}: ${item.count ?? item.val} đơn`}
+                />
+                <span className="vtp-bar-label">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer descriptor tag */}
+      <div className="vtp-page-descriptor">
+        <span>📊</span> Dashboard - thống kê + danh sách đơn + biểu đồ
+      </div>
     </div>
   );
 }
