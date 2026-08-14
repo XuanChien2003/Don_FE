@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth();
+  const toast = useToast();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,14 +18,14 @@ export function LoginPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
     setSubmitting(true);
     try {
-      await login(username, password);
+      const loggedInUser = await login(username, password);
+      toast.success(`Xin chào, ${loggedInUser?.displayName || loggedInUser?.username || ''}`);
       const redirectTo = location.state?.from?.pathname || '/orders';
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      toast.error(err.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setSubmitting(false);
     }
@@ -69,8 +70,6 @@ export function LoginPage() {
                 required
               />
             </div>
-
-            {error && <div className="vtp-alert-error">{error}</div>}
 
             <button type="submit" className="vtp-login-submit-btn" disabled={submitting}>
               {submitting && <span className="vtp-spinner vtp-spinner-light" />}

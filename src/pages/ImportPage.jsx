@@ -2,17 +2,18 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { importOrders } from '../api/orders';
 import { listPartners } from '../api/partners';
+import { useToast } from '../components/Toast';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function ImportPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const isAdmin = user?.role === 'admin';
   const [file, setFile] = useState(null);
   const [partnerId, setPartnerId] = useState('');
   const [partners, setPartners] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -24,19 +25,18 @@ export function ImportPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError('');
     setResult(null);
 
     if (!file) {
-      setError('Vui lòng chọn file Excel (.xlsx/.xls)');
+      toast.error('Vui lòng chọn file Excel (.xlsx/.xls)');
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError('File vượt quá 5MB');
+      toast.error('File vượt quá 5MB');
       return;
     }
     if (isAdmin && !partnerId) {
-      setError('Vui lòng chọn đối tác sở hữu các đơn này');
+      toast.error('Vui lòng chọn đối tác sở hữu các đơn này');
       return;
     }
 
@@ -44,8 +44,9 @@ export function ImportPage() {
     try {
       const res = await importOrders({ file, partnerId: isAdmin ? partnerId : undefined });
       setResult(res);
+      toast.success(`Nhập xong: ${res.successCount}/${res.totalRows} thành công`);
     } catch (err) {
-      setError(err.message || 'Import thất bại');
+      toast.error(err.message || 'Import thất bại');
     } finally {
       setSubmitting(false);
     }
@@ -86,8 +87,6 @@ export function ImportPage() {
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </div>
-
-          {error && <div className="vtp-alert-error">{error}</div>}
 
           <div>
             <button type="submit" className="vtp-btn-primary" disabled={submitting}>

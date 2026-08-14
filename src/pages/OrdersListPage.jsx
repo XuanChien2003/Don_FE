@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { fetchBatchLabelPdf, listOrders } from '../api/orders';
 import { getDashboardStats } from '../api/dashboard';
 import { Pagination } from '../components/Pagination';
+import { useToast } from '../components/Toast';
 
 export function getStatusBadgeInfo(status) {
   if (!status) return { label: 'Chờ XL', className: 'badge-secondary' };
@@ -34,6 +35,7 @@ function openPdfBlob(blob) {
 
 export function OrdersListPage() {
   const { user } = useAuth();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -88,7 +90,10 @@ export function OrdersListPage() {
   // Export orders to CSV file
   const handleExportCSV = () => {
     const itemsToExport = data.items || [];
-    if (itemsToExport.length === 0) return;
+    if (itemsToExport.length === 0) {
+      toast.info('Không có đơn nào để xuất');
+      return;
+    }
     const headers = ['MÃ ĐƠN', 'TRẠNG THÁI', 'NGƯỜI NHẬN', 'DỊCH VỤ', 'COD', 'CẬP NHẬT'];
     const rows = itemsToExport.map((o) => [
       o.internalCode,
@@ -107,6 +112,7 @@ export function OrdersListPage() {
     a.download = `VTP_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    toast.success(`Đã xuất ${itemsToExport.length} đơn ra CSV`);
   };
 
   const handlePrintSelected = async () => {
@@ -116,7 +122,7 @@ export function OrdersListPage() {
       const blob = await fetchBatchLabelPdf({ internalCodes: [...selected] });
       openPdfBlob(blob);
     } catch (err) {
-      setError(err.message || 'Không in được nhãn hàng loạt');
+      toast.error(err.message || 'Không in được nhãn hàng loạt');
     } finally {
       setPrinting(false);
     }

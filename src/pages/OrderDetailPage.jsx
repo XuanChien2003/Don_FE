@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchLabelPdf, getOrderDetail } from '../api/orders';
 import { getStatusBadgeInfo } from './OrdersListPage';
+import { useToast } from '../components/Toast';
 
 function openPdfBlob(blob) {
   const url = URL.createObjectURL(blob);
@@ -11,6 +12,7 @@ function openPdfBlob(blob) {
 
 export function OrderDetailPage() {
   const { internalCode } = useParams();
+  const toast = useToast();
   const [order, setOrder] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -31,12 +33,11 @@ export function OrderDetailPage() {
 
   async function handlePrintLabel() {
     setLabelLoading(true);
-    setError('');
     try {
       const blob = await fetchLabelPdf(internalCode, 'code128');
       openPdfBlob(blob);
     } catch (err) {
-      setError(err.message || 'Không tạo được nhãn PDF');
+      toast.error(err.message || 'Không tạo được nhãn PDF');
     } finally {
       setLabelLoading(false);
     }
@@ -87,8 +88,6 @@ export function OrderDetailPage() {
       <Link to="/orders" className="vtp-back-link">
         &larr; Quay lại danh sách
       </Link>
-
-      {error && <div className="vtp-alert-error">{error}</div>}
 
       {/* Main Grid: Left Details Cards + Right Timeline Card */}
       <div className="vtp-detail-grid">

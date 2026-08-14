@@ -1250,3 +1250,138 @@ code {
   box-shadow: 0 10px 24px rgba(var(--vtp-primary-rgb), 0.38);
   transform: translateY(-1px);
 }
+
+/* Toast notifications */
+.vtp-toast-stack {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(360px, calc(100vw - 40px));
+}
+
+.vtp-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  animation: vtp-toast-in 0.22s ease;
+}
+
+@keyframes vtp-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.vtp-toast-success {
+  background: linear-gradient(135deg, #22c58a 0%, var(--badge-success-text) 100%);
+}
+
+.vtp-toast-error {
+  background: linear-gradient(135deg, #e0605f 0%, var(--badge-danger-text) 100%);
+}
+
+.vtp-toast-info {
+  background: linear-gradient(135deg, #4c7bf3 0%, var(--vtp-primary) 100%);
+}
+
+.vtp-toast-icon {
+  font-weight: 800;
+  flex: none;
+  line-height: 1.4;
+}
+
+.vtp-toast-msg {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* ============ Responsive ============ */
+@media (max-width: 1080px) {
+  .vtp-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .vtp-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .vtp-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .vtp-main-container {
+    padding: 20px 18px 40px;
+  }
+  .vtp-header {
+    padding: 0 18px;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 64px;
+    row-gap: 8px;
+  }
+  .vtp-toast-stack {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+@media (max-width: 640px) {
+  .vtp-toast-stack {
+    left: 16px;
+    right: 16px;
+    top: 16px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .vtp-stats-row {
+    grid-template-columns: 1fr;
+  }
+  .vtp-info-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .vtp-stat-value {
+    font-size: 26px;
+  }
+  .vtp-brand span {
+    display: none;
+  }
+  .vtp-user-profile span {
+    display: none;
+  }
+  .vtp-user-profile {
+    padding: 6px;
+  }
+  .vtp-header-left {
+    gap: 14px;
+  }
+  .vtp-nav-links {
+    margin-left: 4px;
+    padding-left: 10px;
+    gap: 2px;
+  }
+  .vtp-nav-link {
+    padding: 7px 9px;
+    font-size: 12.5px;
+  }
+  .vtp-login-form-wrapper {
+    padding: 28px 18px;
+  }
+}
