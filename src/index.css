@@ -1251,6 +1251,50 @@ code {
   transform: translateY(-1px);
 }
 
+/* Form 2-col row (create/edit forms) */
+.vtp-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .vtp-form-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Inline row action buttons inside a table cell */
+.vtp-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vtp-row-actions .vtp-btn-outline,
+.vtp-row-actions .vtp-btn-primary {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12.5px;
+}
+
+.vtp-table-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--vtp-border-dark);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+}
+
+.vtp-table-input:focus {
+  border-color: var(--vtp-primary);
+  box-shadow: var(--shadow-focus);
+}
+
 /* Toast notifications */
 .vtp-toast-stack {
   position: fixed;

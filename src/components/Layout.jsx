@@ -25,6 +25,11 @@ export function Layout() {
             <NavLink to="/orders/import" className={({ isActive }) => (isActive ? 'vtp-nav-link active' : 'vtp-nav-link')}>
               Import Excel
             </NavLink>
+            {user?.role === 'admin' && (
+              <NavLink to="/partners" className={({ isActive }) => (isActive ? 'vtp-nav-link active' : 'vtp-nav-link')}>
+                Đối tác
+              </NavLink>
+            )}
           </nav>
         </div>
 
