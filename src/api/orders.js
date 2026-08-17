@@ -22,6 +22,10 @@ export function fetchLabelPdf(internalCode, format = 'code128') {
   return apiRequest(`/orders/${encodeURIComponent(internalCode)}/label?format=${format}`, { responseType: 'blob' });
 }
 
+export function fetchLabelBarcode(internalCode, format = 'code128') {
+  return apiRequest(`/orders/${encodeURIComponent(internalCode)}/barcode?format=${format}`, { responseType: 'blob' });
+}
+
 export function fetchBatchLabelPdf({ internalCodes, format = 'code128' }) {
   return apiRequest('/orders/print-batch', { method: 'POST', body: { internalCodes, format }, responseType: 'blob' });
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { fetchLabelPdf, getOrderDetail } from '../api/orders';
+import { fetchLabelBarcode, fetchLabelPdf, getOrderDetail } from '../api/orders';
 import { getStatusBadgeInfo } from './OrdersListPage';
 import { useToast } from '../components/Toast';
 
@@ -12,16 +12,22 @@ export function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [labelLoading, setLabelLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
+  const [barcodeUrl, setBarcodeUrl] = useState(null);
   const pdfUrlRef = useRef(null);
+  const barcodeUrlRef = useRef(null);
 
   function closePdfPreview() {
     if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
+    if (barcodeUrlRef.current) URL.revokeObjectURL(barcodeUrlRef.current);
     pdfUrlRef.current = null;
+    barcodeUrlRef.current = null;
     setPdfUrl(null);
+    setBarcodeUrl(null);
   }
 
   useEffect(() => () => {
     if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
+    if (barcodeUrlRef.current) URL.revokeObjectURL(barcodeUrlRef.current);
   }, []);
 
   useEffect(() => {
@@ -40,11 +46,17 @@ export function OrderDetailPage() {
   async function handlePrintLabel() {
     setLabelLoading(true);
     try {
-      const blob = await fetchLabelPdf(internalCode, 'code128');
+      const [pdfBlob, barcodeBlob] = await Promise.all([
+        fetchLabelPdf(internalCode, 'code128'),
+        fetchLabelBarcode(internalCode, 'code128'),
+      ]);
       closePdfPreview();
-      const nextUrl = URL.createObjectURL(blob);
-      pdfUrlRef.current = nextUrl;
-      setPdfUrl(nextUrl);
+      const nextPdfUrl = URL.createObjectURL(pdfBlob);
+      const nextBarcodeUrl = URL.createObjectURL(barcodeBlob);
+      pdfUrlRef.current = nextPdfUrl;
+      barcodeUrlRef.current = nextBarcodeUrl;
+      setPdfUrl(nextPdfUrl);
+      setBarcodeUrl(nextBarcodeUrl);
     } catch (err) {
       toast.error(err.message || 'Không tạo được nhãn PDF');
     } finally {
@@ -90,6 +102,16 @@ export function OrderDetailPage() {
   const actorPhone = order.actorPhone || '-';
 
   const eventsList = order.events || [];
+
+  function downloadLabelPdf() {
+    if (!pdfUrl) return;
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `${code}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
 
   return (
     <div>
@@ -235,7 +257,41 @@ export function OrderDetailPage() {
         <span>📄</span> Chi tiết đơn + timeline lịch sử
       </div>
 
-      {pdfUrl && (
+      {pdfUrl && barcodeUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Shipping label"
+          style={{ position: 'fixed', inset: 0, zIndex: 1001, overflowY: 'auto', padding: '24px 16px', background: 'rgba(15, 23, 42, 0.72)' }}
+        >
+          <div style={{ width: 'min(100%, 576px)', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginBottom: '12px' }}>
+              <button type="button" className="vtp-btn-outline" onClick={downloadLabelPdf}>{'T\u1ea3i PDF'}</button>
+              <button type="button" className="vtp-btn-outline" onClick={closePdfPreview}>{'\u0110\u00f3ng'}</button>
+            </div>
+            <section style={{ boxSizing: 'border-box', width: '100%', minHeight: '864px', padding: '42px 40px', background: '#fff', color: '#000', boxShadow: '0 8px 32px rgba(0,0,0,0.22)' }}>
+              <h1 style={{ margin: '0 0 26px', fontSize: '26px', fontWeight: 500, textAlign: 'center' }}>{'PHI\u1ebeU GIAO H\u00c0NG'}</h1>
+              <div style={{ fontSize: '18px', lineHeight: 1.4 }}>
+                <div>{'M\u00e3 \u0111\u01a1n: '}{code}</div>
+                <div>{'M\u00e3 VTP: '}{order.vtpCode || '-'}</div>
+                <div>{'Ng\u01b0\u1eddi nh\u1eadn: '}{receiverName}</div>
+                {order.receiverPhone && <div>{'S\u0110T: '}{order.receiverPhone}</div>}
+                {order.receiverAddress && <div>{'\u0110\u1ecba ch\u1ec9: '}{order.receiverAddress}</div>}
+                {order.productInfo && <div>{'H\u00e0ng h\u00f3a: '}{order.productInfo}</div>}
+                {order.weightKg != null && <div>{'Kh\u1ed1i l\u01b0\u1ee3ng: '}{order.weightKg} kg</div>}
+              </div>
+              <div style={{ paddingTop: '360px' }}>
+                <div style={{ border: '1px solid #cbd5e1', padding: '14px 0 18px' }}>
+                  <div style={{ marginBottom: '12px', color: '#334155', fontSize: '14px', textAlign: 'center' }}>SCAN BARCODE</div>
+                  <img src={barcodeUrl} alt={`Barcode ${order.vtpCode || code}`} style={{ display: 'block', width: '100%', height: 'auto' }} />
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
+
+      {false && pdfUrl && (
         <div
           role="dialog"
           aria-modal="true"
