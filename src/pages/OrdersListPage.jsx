@@ -113,7 +113,7 @@ export function OrdersListPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `VTP_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `NewHorizon_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`Đã xuất ${itemsToExport.length} đơn ra CSV`);

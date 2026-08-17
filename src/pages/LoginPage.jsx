@@ -36,7 +36,9 @@ export function LoginPage() {
       {/* Left Column: Blue Gradient Banner */}
       <div className="vtp-login-banner">
         <div className="vtp-login-banner-content">
-          <h1 className="vtp-login-brand-title">VTP Partner</h1>
+          <div className="vtp-login-brand-logo-card">
+            <img src="/Logo.png" alt="New Horizon Logistics" className="vtp-login-brand-logo" />
+          </div>
           <p className="vtp-login-brand-subtitle">Quản lý đơn hàng vận chuyển</p>
         </div>
       </div>

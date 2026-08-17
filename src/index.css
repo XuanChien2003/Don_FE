@@ -155,15 +155,10 @@ code {
   text-decoration: none !important;
 }
 
-.vtp-brand-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: linear-gradient(150deg, #fff4df 0%, #ffe3ad 100%);
-  box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.18), 0 4px 10px rgba(217, 119, 6, 0.16);
+.vtp-brand-logo {
+  height: 34px;
+  width: auto;
+  display: block;
 }
 
 .vtp-nav-links {
@@ -922,12 +917,19 @@ code {
   text-align: center;
 }
 
-.vtp-login-brand-title {
-  font-size: 44px;
-  font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 10px;
-  letter-spacing: -1px;
+.vtp-login-brand-logo-card {
+  display: inline-flex;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 28px;
+  margin-bottom: 18px;
+  box-shadow: 0 12px 32px rgba(8, 15, 45, 0.25);
+}
+
+.vtp-login-brand-logo {
+  height: 64px;
+  width: auto;
+  display: block;
 }
 
 .vtp-login-brand-subtitle {
