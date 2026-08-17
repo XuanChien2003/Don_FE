@@ -9,6 +9,7 @@ import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ImportPage } from './pages/ImportPage';
 import { PartnersPage } from './pages/PartnersPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/orders/:internalCode" element={<OrderDetailPage />} />
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

@@ -7,3 +7,7 @@ export function login({ username, password }) {
 export function registerPartner(payload) {
   return apiRequest('/partners/register', { method: 'POST', body: payload });
 }
+
+export function changePassword({ currentPassword, newPassword }) {
+  return apiRequest('/auth/change-password', { method: 'POST', body: { currentPassword, newPassword } });
+}
