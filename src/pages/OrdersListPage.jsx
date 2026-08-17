@@ -27,9 +27,13 @@ export function getStatusBadgeInfo(status) {
   return { label: status, className: 'badge-secondary' };
 }
 
-function openPdfBlob(blob) {
+function openPdfBlob(blob, targetWindow) {
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank', 'noopener');
+  if (targetWindow) {
+    targetWindow.location.href = url;
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
@@ -117,11 +121,15 @@ export function OrdersListPage() {
 
   const handlePrintSelected = async () => {
     if (selected.size === 0) return;
+    // Opened synchronously (still inside the click's user-activation window) so the browser
+    // doesn't silently popup-block the tab once the network request resolves later.
+    const pdfWindow = window.open('', '_blank', 'noopener');
     setPrinting(true);
     try {
       const blob = await fetchBatchLabelPdf({ internalCodes: [...selected] });
-      openPdfBlob(blob);
+      openPdfBlob(blob, pdfWindow);
     } catch (err) {
+      if (pdfWindow) pdfWindow.close();
       toast.error(err.message || 'Không in được nhãn hàng loạt');
     } finally {
       setPrinting(false);

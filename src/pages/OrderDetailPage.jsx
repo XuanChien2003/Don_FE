@@ -4,9 +4,13 @@ import { fetchLabelPdf, getOrderDetail } from '../api/orders';
 import { getStatusBadgeInfo } from './OrdersListPage';
 import { useToast } from '../components/Toast';
 
-function openPdfBlob(blob) {
+function openPdfBlob(blob, targetWindow) {
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank', 'noopener');
+  if (targetWindow) {
+    targetWindow.location.href = url;
+  } else {
+    window.open(url, '_blank', 'noopener');
+  }
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
@@ -32,11 +36,16 @@ export function OrderDetailPage() {
   }, [internalCode]);
 
   async function handlePrintLabel() {
+    // Open the tab synchronously, still inside the click's user-activation window - opening it
+    // only after `await fetchLabelPdf` resolves is what browsers silently popup-block (no error,
+    // nothing visibly happens), especially once network/cold-start latency is involved.
+    const pdfWindow = window.open('', '_blank', 'noopener');
     setLabelLoading(true);
     try {
       const blob = await fetchLabelPdf(internalCode, 'code128');
-      openPdfBlob(blob);
+      openPdfBlob(blob, pdfWindow);
     } catch (err) {
+      if (pdfWindow) pdfWindow.close();
       toast.error(err.message || 'Không tạo được nhãn PDF');
     } finally {
       setLabelLoading(false);
