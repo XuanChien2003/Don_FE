@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { createPartner, listAllPartners, updatePartner } from '../api/partners';
 import { useToast } from '../components/Toast';
 
-const EMPTY_FORM = { companyName: '', contactEmail: '', contactPhone: '', password: '' };
+const EMPTY_FORM = { companyName: '', contactEmail: '', contactPhone: '' };
 
 export function PartnersPage() {
   const { user } = useAuth();
@@ -41,8 +41,12 @@ export function PartnersPage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await createPartner(form);
-      toast.success(`Đã tạo đối tác "${form.companyName}"`);
+      const res = await createPartner(form);
+      if (res.emailSent) {
+        toast.success(`Đã tạo đối tác "${form.companyName}" và gửi mật khẩu đến ${form.contactEmail}`);
+      } else {
+        toast.error(`Đã tạo đối tác "${form.companyName}" nhưng gửi email thất bại - hãy cấp lại mật khẩu thủ công`);
+      }
       setForm(EMPTY_FORM);
       load();
     } catch (err) {
@@ -132,18 +136,8 @@ export function PartnersPage() {
                 required
               />
             </div>
-            <div className="vtp-input-group">
-              <label className="vtp-input-label">Mật khẩu đăng nhập (tối thiểu 8 ký tự)</label>
-              <input
-                type="password"
-                className="vtp-form-input"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                minLength={8}
-                required
-              />
-            </div>
           </div>
+          <p className="vtp-input-hint">Mật khẩu đăng nhập sẽ được tạo tự động và gửi qua email liên hệ ở trên.</p>
           <div>
             <button type="submit" className="vtp-btn-primary" disabled={submitting}>
               {submitting && <span className="vtp-spinner vtp-spinner-light" />}

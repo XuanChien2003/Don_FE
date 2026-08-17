@@ -976,6 +976,12 @@ code {
   color: #374151;
 }
 
+.vtp-input-hint {
+  font-size: 13px;
+  color: #6b7280;
+  margin: -4px 0 0;
+}
+
 .vtp-form-input {
   width: 100%;
   height: 42px;
