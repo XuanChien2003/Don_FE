@@ -1,18 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchLabelPdf, getOrderDetail } from '../api/orders';
 import { getStatusBadgeInfo } from './OrdersListPage';
 import { useToast } from '../components/Toast';
-
-function openPdfBlob(blob, targetWindow) {
-  const url = URL.createObjectURL(blob);
-  if (targetWindow) {
-    targetWindow.location.href = url;
-  } else {
-    window.open(url, '_blank', 'noopener');
-  }
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-}
 
 export function OrderDetailPage() {
   const { internalCode } = useParams();
@@ -21,6 +11,18 @@ export function OrderDetailPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [labelLoading, setLabelLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const pdfUrlRef = useRef(null);
+
+  function closePdfPreview() {
+    if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
+    pdfUrlRef.current = null;
+    setPdfUrl(null);
+  }
+
+  useEffect(() => () => {
+    if (pdfUrlRef.current) URL.revokeObjectURL(pdfUrlRef.current);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -36,20 +38,14 @@ export function OrderDetailPage() {
   }, [internalCode]);
 
   async function handlePrintLabel() {
-    // Open the tab synchronously, still inside the click's user-activation window - opening it
-    // only after `await fetchLabelPdf` resolves is what browsers silently popup-block (no error,
-    // nothing visibly happens), especially once network/cold-start latency is involved.
-    // Keep a window handle created during the click.  Passing `noopener` here
-    // makes Chrome return null, which causes the later (async) PDF popup to be
-    // blocked as an unsolicited popup.
-    const pdfWindow = window.open('', '_blank');
-    if (pdfWindow) pdfWindow.opener = null;
     setLabelLoading(true);
     try {
       const blob = await fetchLabelPdf(internalCode, 'code128');
-      openPdfBlob(blob, pdfWindow);
+      closePdfPreview();
+      const nextUrl = URL.createObjectURL(blob);
+      pdfUrlRef.current = nextUrl;
+      setPdfUrl(nextUrl);
     } catch (err) {
-      if (pdfWindow) pdfWindow.close();
       toast.error(err.message || 'Không tạo được nhãn PDF');
     } finally {
       setLabelLoading(false);
@@ -238,6 +234,23 @@ export function OrderDetailPage() {
       <div className="vtp-page-descriptor">
         <span>📄</span> Chi tiết đơn + timeline lịch sử
       </div>
+
+      {pdfUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Xem trước nhãn PDF"
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, padding: '16px', background: 'rgba(15, 23, 42, 0.72)' }}
+        >
+          <div style={{ height: '100%', maxWidth: '920px', margin: '0 auto', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '10px 14px', borderBottom: '1px solid #e2e8f0' }}>
+              <strong>Xem trước nhãn PDF</strong>
+              <button type="button" className="vtp-btn-outline" onClick={closePdfPreview}>Đóng</button>
+            </div>
+            <iframe title="Nhãn PDF" src={pdfUrl} style={{ width: '100%', flex: 1, border: 0 }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
