@@ -57,7 +57,7 @@ export function ImportPage() {
       <div className="vtp-page-header">
         <h2 className="vtp-page-title">Import đơn hàng từ Excel</h2>
         <p className="vtp-page-subtitle">
-          Tối đa 500 dòng/lần. Cột bắt buộc: <code>vtpCode</code>, <code>receiverName</code>. Cột tùy chọn:{' '}
+          Tối đa 500 dòng/lần. Bắt buộc đủ 6 cột: <code>vtpCode</code>, <code>receiverName</code>,{' '}
           <code>receiverPhone</code>, <code>receiverAddress</code>, <code>productInfo</code>, <code>weightKg</code>.
         </p>
       </div>
