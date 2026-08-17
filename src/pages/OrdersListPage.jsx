@@ -123,7 +123,11 @@ export function OrdersListPage() {
     if (selected.size === 0) return;
     // Opened synchronously (still inside the click's user-activation window) so the browser
     // doesn't silently popup-block the tab once the network request resolves later.
-    const pdfWindow = window.open('', '_blank', 'noopener');
+    // The tab must be opened synchronously from this click. `noopener` would
+    // make window.open return null in Chrome and the PDF popup gets blocked
+    // after the asynchronous download finishes.
+    const pdfWindow = window.open('', '_blank');
+    if (pdfWindow) pdfWindow.opener = null;
     setPrinting(true);
     try {
       const blob = await fetchBatchLabelPdf({ internalCodes: [...selected] });

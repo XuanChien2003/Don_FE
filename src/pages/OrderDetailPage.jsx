@@ -39,7 +39,11 @@ export function OrderDetailPage() {
     // Open the tab synchronously, still inside the click's user-activation window - opening it
     // only after `await fetchLabelPdf` resolves is what browsers silently popup-block (no error,
     // nothing visibly happens), especially once network/cold-start latency is involved.
-    const pdfWindow = window.open('', '_blank', 'noopener');
+    // Keep a window handle created during the click.  Passing `noopener` here
+    // makes Chrome return null, which causes the later (async) PDF popup to be
+    // blocked as an unsolicited popup.
+    const pdfWindow = window.open('', '_blank');
+    if (pdfWindow) pdfWindow.opener = null;
     setLabelLoading(true);
     try {
       const blob = await fetchLabelPdf(internalCode, 'code128');
