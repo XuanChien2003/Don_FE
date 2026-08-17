@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { createPartner, listAllPartners, updatePartner } from '../api/partners';
+import { createPartner, listAllPartners, resetPartnerCredentials, updatePartner } from '../api/partners';
 import { useToast } from '../components/Toast';
 
 const EMPTY_FORM = { companyName: '', contactEmail: '', contactPhone: '' };
@@ -45,7 +45,10 @@ export function PartnersPage() {
       if (res.emailSent) {
         toast.success(`Đã tạo đối tác "${form.companyName}" và gửi mật khẩu đến ${form.contactEmail}`);
       } else {
-        toast.error(`Đã tạo đối tác "${form.companyName}" nhưng gửi email thất bại - hãy cấp lại mật khẩu thủ công`);
+        // Creation itself succeeded (partner+user rows exist) - only the email step failed, so
+        // this must not read as a failure toast or admins will retry with the same contactEmail
+        // and hit a 409 on a partner that already exists.
+        toast.info(`Đã tạo đối tác "${form.companyName}" (chưa gửi được email mật khẩu - hãy cấp mật khẩu thủ công, KHÔNG tạo lại)`);
       }
       setForm(EMPTY_FORM);
       load();
@@ -76,6 +79,22 @@ export function PartnersPage() {
       load();
     } catch (err) {
       toast.error(err.message || 'Cập nhật thất bại');
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function resendCredentials(p) {
+    setSavingId(p.publicId);
+    try {
+      const res = await resetPartnerCredentials(p.publicId);
+      if (res.emailSent) {
+        toast.success(`Đã gửi mật khẩu mới đến ${p.contactEmail}`);
+      } else {
+        toast.error(`Sinh mật khẩu mới thành công nhưng gửi email thất bại (${res.emailError || 'lỗi không rõ'})`);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Không gửi lại được mật khẩu');
     } finally {
       setSavingId(null);
     }
@@ -237,6 +256,10 @@ export function PartnersPage() {
                             <button type="button" className="vtp-btn-outline" onClick={() => toggleStatus(p)} disabled={isSaving}>
                               {isSaving && <span className="vtp-spinner" />}
                               {p.status === 'active' ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                            </button>
+                            <button type="button" className="vtp-btn-outline" onClick={() => resendCredentials(p)} disabled={isSaving}>
+                              {isSaving && <span className="vtp-spinner" />}
+                              Gửi lại mật khẩu
                             </button>
                           </div>
                         )}

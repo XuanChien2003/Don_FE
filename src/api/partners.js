@@ -15,3 +15,7 @@ export function createPartner(data) {
 export function updatePartner(publicId, updates) {
   return apiRequest(`/partners/${encodeURIComponent(publicId)}`, { method: 'PATCH', body: updates });
 }
+
+export function resetPartnerCredentials(publicId) {
+  return apiRequest(`/partners/${encodeURIComponent(publicId)}/reset-credentials`, { method: 'POST' });
+}
