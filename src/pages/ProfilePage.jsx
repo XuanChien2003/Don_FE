@@ -8,11 +8,32 @@ const EMPTY_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' }
 const PASSWORD_COMPLEXITY_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 const ROLE_LABEL = { admin: 'Quản trị viên', partner: 'Đối tác', scanner: 'Nhân viên quét mã' };
 
+const STRENGTH_LEVELS = [
+  { label: 'Rất yếu', color: '#dc2626' },
+  { label: 'Yếu', color: '#f97316' },
+  { label: 'Trung bình', color: '#eab308' },
+  { label: 'Khá', color: '#84cc16' },
+  { label: 'Mạnh', color: '#16a34a' },
+];
+
+function getPasswordStrength(password) {
+  if (!password) return null;
+  let score = 0;
+  if (password.length >= 8) score += 1;
+  if (password.length >= 12) score += 1;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  const idx = Math.min(score, STRENGTH_LEVELS.length - 1);
+  return { ...STRENGTH_LEVELS[idx], percent: ((idx + 1) / STRENGTH_LEVELS.length) * 100 };
+}
+
 export function ProfilePage() {
   const { user } = useAuth();
   const toast = useToast();
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
+  const strength = getPasswordStrength(form.newPassword);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -81,6 +102,19 @@ export function ProfilePage() {
                 minLength={8}
                 required
               />
+              {strength && (
+                <div className="vtp-strength-meter">
+                  <div className="vtp-strength-track">
+                    <div
+                      className="vtp-strength-fill"
+                      style={{ width: `${strength.percent}%`, backgroundColor: strength.color }}
+                    />
+                  </div>
+                  <span className="vtp-strength-label" style={{ color: strength.color }}>
+                    {strength.label}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="vtp-input-group">
               <label className="vtp-input-label">Xác nhận mật khẩu mới</label>
