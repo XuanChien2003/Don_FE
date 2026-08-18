@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../components/Toast';
+import { PasswordInput } from '../components/PasswordInput';
 
 export function LoginPage() {
   const { login, isAuthenticated } = useAuth();
@@ -64,9 +65,7 @@ export function LoginPage() {
 
             <div className="vtp-input-group">
               <label className="vtp-input-label">Mật khẩu</label>
-              <input
-                type="password"
-                className="vtp-form-input"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required

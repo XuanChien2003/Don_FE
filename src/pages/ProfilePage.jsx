@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { changePassword } from '../api/auth';
 import { useToast } from '../components/Toast';
+import { PasswordInput } from '../components/PasswordInput';
 
 const EMPTY_FORM = { currentPassword: '', newPassword: '', confirmPassword: '' };
 const PASSWORD_COMPLEXITY_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
@@ -65,9 +66,7 @@ export function ProfilePage() {
         <form onSubmit={handleSubmit} className="vtp-form-stack">
           <div className="vtp-input-group">
             <label className="vtp-input-label">Mật khẩu hiện tại</label>
-            <input
-              type="password"
-              className="vtp-form-input"
+            <PasswordInput
               value={form.currentPassword}
               onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
               required
@@ -76,9 +75,7 @@ export function ProfilePage() {
           <div className="vtp-form-row-2">
             <div className="vtp-input-group">
               <label className="vtp-input-label">Mật khẩu mới</label>
-              <input
-                type="password"
-                className="vtp-form-input"
+              <PasswordInput
                 value={form.newPassword}
                 onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
                 minLength={8}
@@ -87,9 +84,7 @@ export function ProfilePage() {
             </div>
             <div className="vtp-input-group">
               <label className="vtp-input-label">Xác nhận mật khẩu mới</label>
-              <input
-                type="password"
-                className="vtp-form-input"
+              <PasswordInput
                 value={form.confirmPassword}
                 onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                 minLength={8}
