@@ -182,6 +182,11 @@ export function OrdersListPage() {
 
   return (
     <div>
+      <div className="vtp-page-header">
+        <h1 className="vtp-dashboard-title">Dashboard</h1>
+        <p className="vtp-page-subtitle">Thống kê tổng quan, danh sách đơn hàng và biểu đồ hoạt động 7 ngày gần nhất.</p>
+      </div>
+
       {/* Top 4 Stat Cards */}
       <div className="vtp-stats-row">
         <div className="vtp-stat-card">
@@ -347,11 +352,6 @@ export function OrdersListPage() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Footer descriptor tag */}
-      <div className="vtp-page-descriptor">
-        <span>📊</span> Dashboard - thống kê + danh sách đơn + biểu đồ
       </div>
     </div>
   );

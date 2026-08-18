@@ -1134,6 +1134,18 @@ code {
   line-height: 1.6;
 }
 
+.vtp-dashboard-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #12172a;
+  letter-spacing: -0.6px;
+  margin: 0 0 6px;
+  background: linear-gradient(120deg, #12172a 0%, #212060 60%, #2f6cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .vtp-form-stack {
   display: flex;
   flex-direction: column;

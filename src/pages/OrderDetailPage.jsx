@@ -120,6 +120,10 @@ export function OrderDetailPage() {
         &larr; Quay lại danh sách
       </Link>
 
+      <div className="vtp-page-header">
+        <h1 className="vtp-dashboard-title">Chi tiết đơn</h1>
+      </div>
+
       {/* Main Grid: Left Details Cards + Right Timeline Card */}
       <div className="vtp-detail-grid">
         {/* Left Column */}
@@ -250,11 +254,6 @@ export function OrderDetailPage() {
             )}
           </div>
         </div>
-      </div>
-
-      {/* Footer descriptor tag */}
-      <div className="vtp-page-descriptor">
-        <span>📄</span> Chi tiết đơn + timeline lịch sử
       </div>
 
       {pdfUrl && barcodeUrl && (
