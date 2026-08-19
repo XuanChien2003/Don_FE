@@ -107,7 +107,7 @@ export function ImportPage() {
                 <tr>
                   <th>Dòng</th>
                   <th>Kết quả</th>
-                  <th>Mã đơn / Lỗi</th>
+                  <th>Mã VTP / Lỗi</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,7 +119,7 @@ export function ImportPage() {
                         {r.success ? 'Thành công' : 'Lỗi'}
                       </span>
                     </td>
-                    <td>{r.success ? r.internalCode : r.error}</td>
+                    <td>{r.success ? r.vtpCode : r.error}</td>
                   </tr>
                 ))}
               </tbody>

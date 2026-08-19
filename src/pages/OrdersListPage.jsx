@@ -70,7 +70,7 @@ export function OrdersListPage() {
       const [statsRes, ordersRes] = await Promise.allSettled([
         getDashboardStats(),
         listOrders({
-          internalCode: searchQuery,
+          keyword: searchQuery,
           currentStatus: statusFilter,
           page,
           limit,
@@ -108,9 +108,9 @@ export function OrdersListPage() {
       toast.info('Không có đơn nào để xuất');
       return;
     }
-    const headers = ['MÃ ĐƠN', 'TRẠNG THÁI', 'NGƯỜI NHẬN', 'DỊCH VỤ', 'COD', 'CẬP NHẬT'];
+    const headers = ['MÃ VTP', 'TRẠNG THÁI', 'NGƯỜI NHẬN', 'DỊCH VỤ', 'COD', 'CẬP NHẬT'];
     const rows = itemsToExport.map((o) => [
-      o.internalCode,
+      o.vtpCode,
       o.currentStatus || 'Chờ XL',
       `"${o.receiverName || ''}"`,
       o.serviceName || o.productInfo || 'VHT',
@@ -140,7 +140,7 @@ export function OrdersListPage() {
     if (pdfWindow) pdfWindow.opener = null;
     setPrinting(true);
     try {
-      const blob = await fetchBatchLabelPdf({ internalCodes: [...selected] });
+      const blob = await fetchBatchLabelPdf({ vtpCodes: [...selected] });
       openPdfBlob(blob, pdfWindow);
     } catch (err) {
       if (pdfWindow) pdfWindow.close();
@@ -234,7 +234,7 @@ export function OrdersListPage() {
               <input
                 type="text"
                 className="vtp-search-input"
-                placeholder="Tìm mã đơn, SĐT, người nhận..."
+                placeholder="Tìm mã VTP, SĐT, người nhận..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -284,7 +284,7 @@ export function OrdersListPage() {
             <table className="vtp-table">
               <thead>
                 <tr>
-                  <th>MÃ ĐƠN</th>
+                  <th>MÃ VTP</th>
                   <th>TRẠNG THÁI</th>
                   <th>NGƯỜI NHẬN</th>
                   <th>DỊCH VỤ</th>
@@ -309,9 +309,9 @@ export function OrdersListPage() {
                   data.items.map((order) => {
                     const badge = getStatusBadgeInfo(order.currentStatus);
                     return (
-                      <tr key={order.internalCode}>
+                      <tr key={order.vtpCode}>
                         <td className="vtp-order-code">
-                          <Link to={`/orders/${order.internalCode}`}>{order.internalCode}</Link>
+                          <Link to={`/orders/${order.vtpCode}`}>{order.vtpCode}</Link>
                         </td>
                         <td>
                           <span className={`vtp-badge ${badge.className}`}>{badge.label}</span>

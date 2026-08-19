@@ -7,8 +7,8 @@ export function listOrders(params = {}) {
   return apiRequest(`/orders${query ? `?${query}` : ''}`);
 }
 
-export function getOrderDetail(internalCode) {
-  return apiRequest(`/orders/${encodeURIComponent(internalCode)}`);
+export function getOrderDetail(vtpCode) {
+  return apiRequest(`/orders/${encodeURIComponent(vtpCode)}`);
 }
 
 export function importOrders({ file, partnerId }) {
@@ -18,14 +18,14 @@ export function importOrders({ file, partnerId }) {
   return apiRequest('/orders/import', { method: 'POST', body: form, isFormData: true });
 }
 
-export function fetchLabelPdf(internalCode, format = 'code128') {
-  return apiRequest(`/orders/${encodeURIComponent(internalCode)}/label?format=${format}`, { responseType: 'blob' });
+export function fetchLabelPdf(vtpCode, format = 'code128') {
+  return apiRequest(`/orders/${encodeURIComponent(vtpCode)}/label?format=${format}`, { responseType: 'blob' });
 }
 
-export function fetchLabelBarcode(internalCode, format = 'code128') {
-  return apiRequest(`/orders/${encodeURIComponent(internalCode)}/barcode?format=${format}`, { responseType: 'blob' });
+export function fetchLabelBarcode(vtpCode, format = 'code128') {
+  return apiRequest(`/orders/${encodeURIComponent(vtpCode)}/barcode?format=${format}`, { responseType: 'blob' });
 }
 
-export function fetchBatchLabelPdf({ internalCodes, format = 'code128' }) {
-  return apiRequest('/orders/print-batch', { method: 'POST', body: { internalCodes, format }, responseType: 'blob' });
+export function fetchBatchLabelPdf({ vtpCodes, format = 'code128' }) {
+  return apiRequest('/orders/print-batch', { method: 'POST', body: { vtpCodes, format }, responseType: 'blob' });
 }

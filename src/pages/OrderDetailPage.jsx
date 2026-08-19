@@ -5,7 +5,7 @@ import { getStatusBadgeInfo } from './OrdersListPage';
 import { useToast } from '../components/Toast';
 
 export function OrderDetailPage() {
-  const { internalCode } = useParams();
+  const { vtpCode: routeVtpCode } = useParams();
   const toast = useToast();
   const [order, setOrder] = useState(null);
   const [error, setError] = useState('');
@@ -33,7 +33,7 @@ export function OrderDetailPage() {
   useEffect(() => {
     setLoading(true);
     setError('');
-    getOrderDetail(internalCode)
+    getOrderDetail(routeVtpCode)
       .then((res) => {
         setOrder(res);
       })
@@ -41,14 +41,14 @@ export function OrderDetailPage() {
         setError(err.message || 'Không tìm thấy đơn hàng');
       })
       .finally(() => setLoading(false));
-  }, [internalCode]);
+  }, [routeVtpCode]);
 
   async function handlePrintLabel() {
     setLabelLoading(true);
     try {
       const [pdfBlob, barcodeBlob] = await Promise.all([
-        fetchLabelPdf(internalCode, 'code128'),
-        fetchLabelBarcode(internalCode, 'code128'),
+        fetchLabelPdf(routeVtpCode, 'code128'),
+        fetchLabelBarcode(routeVtpCode, 'code128'),
       ]);
       closePdfPreview();
       const nextPdfUrl = URL.createObjectURL(pdfBlob);
@@ -84,7 +84,7 @@ export function OrderDetailPage() {
     );
   }
 
-  const code = order.internalCode || internalCode;
+  const code = order.vtpCode || routeVtpCode;
   const statusLabel = order.currentStatus || '-';
   const badgeInfo = getStatusBadgeInfo(statusLabel);
 
@@ -140,22 +140,18 @@ export function OrderDetailPage() {
               </div>
               <div className="vtp-info-row">
                 <div className="vtp-info-item">
-                  <span className="vtp-info-label">Mã đơn</span>
-                  <span className="vtp-info-value">{code}</span>
-                </div>
-                <div className="vtp-info-item">
                   <span className="vtp-info-label">Trạng thái</span>
                   <span className={`vtp-badge ${badgeInfo.className}`}>{statusLabel}</span>
-                </div>
-              </div>
-              <div className="vtp-info-row">
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">Ngày tạo</span>
-                  <span className="vtp-info-value">{order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : '-'}</span>
                 </div>
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Dịch vụ</span>
                   <span className="vtp-info-value">{serviceText}</span>
+                </div>
+              </div>
+              <div className="vtp-info-row" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Ngày tạo</span>
+                  <span className="vtp-info-value">{order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : '-'}</span>
                 </div>
               </div>
             </div>
@@ -305,7 +301,6 @@ export function OrderDetailPage() {
             <section style={{ boxSizing: 'border-box', width: '100%', minHeight: '864px', padding: '42px 40px', background: '#fff', color: '#000', boxShadow: '0 8px 32px rgba(0,0,0,0.22)' }}>
               <h1 style={{ margin: '0 0 26px', fontSize: '26px', fontWeight: 500, textAlign: 'center' }}>{'PHI\u1ebeU GIAO H\u00c0NG'}</h1>
               <div style={{ fontSize: '18px', lineHeight: 1.4 }}>
-                <div>{'M\u00e3 \u0111\u01a1n: '}{code}</div>
                 <div>{'M\u00e3 VTP: '}{order.vtpCode || '-'}</div>
                 <div>{'Ng\u01b0\u1eddi nh\u1eadn: '}{receiverName}</div>
                 {order.receiverPhone && <div>{'S\u0110T: '}{order.receiverPhone}</div>}

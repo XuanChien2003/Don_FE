@@ -28,7 +28,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/orders" replace />} />
             <Route path="/orders" element={<OrdersListPage />} />
             <Route path="/orders/import" element={<ImportPage />} />
-            <Route path="/orders/:internalCode" element={<OrderDetailPage />} />
+            <Route path="/orders/:vtpCode" element={<OrderDetailPage />} />
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/profile" element={<ProfilePage />} />
