@@ -247,6 +247,9 @@ export function OrderDetailPage() {
                   <div className={`vtp-timeline-node ${idx === 0 ? 'filled' : ''}`} />
                   <div className="vtp-timeline-time">{new Date(item.eventTime).toLocaleString('vi-VN')}</div>
                   <div className="vtp-timeline-title">{item.eventType || item.source || 'Sự kiện'}</div>
+                  {item.actor?.displayName && (
+                    <div className="vtp-timeline-subtext">Nhân viên: {item.actor.displayName}</div>
+                  )}
                   {item.location && <div className="vtp-timeline-subtext">{item.location}</div>}
                   {item.note && <div className="vtp-timeline-subtext">{item.note}</div>}
                 </div>

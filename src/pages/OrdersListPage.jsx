@@ -6,6 +6,16 @@ import { getDashboardStats } from '../api/dashboard';
 import { Pagination } from '../components/Pagination';
 import { useToast } from '../components/Toast';
 
+const SCAN_EVENT_LABELS = {
+  nhap_kho: 'Nhập kho',
+  xuat_kho: 'Xuất kho',
+  ban_giao: 'Bàn giao',
+  tra_cuu: 'Tra cứu',
+};
+function scanEventLabel(type) {
+  return SCAN_EVENT_LABELS[type] || type || '-';
+}
+
 export function getStatusBadgeInfo(status) {
   if (!status) return { label: 'Chờ XL', className: 'badge-secondary' };
   const s = String(status).toLowerCase();
@@ -353,6 +363,63 @@ export function OrdersListPage() {
           </div>
         </div>
       </div>
+
+      {/* Admin-only: scan activity by event type + by employee (scanners aren't tied to a
+          partner, so this stays out of the partner view). */}
+      {user?.role === 'admin' && stats?.scanStats && (
+        <div className="vtp-card" style={{ marginTop: '16px' }}>
+          <div className="vtp-detail-section-title">LƯỢT QUÉT KHO</div>
+
+          <div className="vtp-stats-row">
+            {['nhap_kho', 'xuat_kho', 'ban_giao', 'tra_cuu'].map((type) => {
+              const found = stats.scanStats.byEventType.find((s) => s.eventType === type);
+              return (
+                <div className="vtp-stat-card" key={type}>
+                  <div className="vtp-stat-label">{scanEventLabel(type).toUpperCase()}</div>
+                  <div className="vtp-stat-value">{(found?.count || 0).toLocaleString()}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="vtp-table-wrapper" style={{ marginTop: '16px' }}>
+            <table className="vtp-table">
+              <thead>
+                <tr>
+                  <th>NHÂN VIÊN</th>
+                  <th>NHẬP KHO</th>
+                  <th>XUẤT KHO</th>
+                  <th>BÀN GIAO</th>
+                  <th>TRA CỨU</th>
+                  <th>TỔNG</th>
+                  <th>QUÉT GẦN NHẤT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.scanStats.byEmployee.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="vtp-table-empty">
+                      Chưa có lượt quét nào
+                    </td>
+                  </tr>
+                ) : (
+                  stats.scanStats.byEmployee.map((emp) => (
+                    <tr key={emp.actorPublicId || emp.displayName}>
+                      <td>{emp.displayName}</td>
+                      <td>{emp.byEventType.nhap_kho || 0}</td>
+                      <td>{emp.byEventType.xuat_kho || 0}</td>
+                      <td>{emp.byEventType.ban_giao || 0}</td>
+                      <td>{emp.byEventType.tra_cuu || 0}</td>
+                      <td><strong>{emp.total}</strong></td>
+                      <td>{formatDate(emp.lastScanAt)}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
