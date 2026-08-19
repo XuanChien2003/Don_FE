@@ -124,16 +124,20 @@ export function OrderDetailPage() {
         <h1 className="vtp-dashboard-title">Chi tiết đơn</h1>
       </div>
 
-      {/* Main Grid: Left Details Cards + Right Timeline Card */}
-      <div className="vtp-detail-grid">
-        {/* Left Column */}
+      {/* Main Grid: Vận đơn+Người nhận | Hàng hóa+Phí+NV | Hành trình đơn */}
+      <div className="vtp-detail-grid vtp-detail-grid-3col">
+        {/* Column 1: Vận đơn + Người nhận */}
         <div>
-          {/* Card 1: THÔNG TIN ĐƠN */}
           <div className="vtp-card" style={{ marginBottom: '16px' }}>
-            <div className="vtp-detail-section-title">THÔNG TIN ĐƠN</div>
+            <div className="vtp-detail-section-title">THÔNG TIN VẬN ĐƠN</div>
 
             <div className="vtp-info-rows">
-              {/* Row 1 */}
+              <div className="vtp-info-row" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Mã VTP</span>
+                  <span className="vtp-order-code-lg">{order.vtpCode || '-'}</span>
+                </div>
+              </div>
               <div className="vtp-info-row">
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Mã đơn</span>
@@ -144,59 +148,23 @@ export function OrderDetailPage() {
                   <span className={`vtp-badge ${badgeInfo.className}`}>{statusLabel}</span>
                 </div>
               </div>
-
-              {/* Row 2 */}
               <div className="vtp-info-row">
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Ngày tạo</span>
+                  <span className="vtp-info-value">{order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : '-'}</span>
+                </div>
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Dịch vụ</span>
                   <span className="vtp-info-value">{serviceText}</span>
-                </div>
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">Trọng lượng</span>
-                  <span className="vtp-info-value">{weightText}</span>
-                </div>
-              </div>
-
-              {/* Row 3 */}
-              <div className="vtp-info-row">
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">COD</span>
-                  <span className="vtp-info-value">{codText}</span>
-                </div>
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">Tổng phí VC</span>
-                  <span className="vtp-info-value">{feeText}</span>
-                </div>
-              </div>
-
-              {/* Row 4 */}
-              <div className="vtp-info-row">
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">VAT</span>
-                  <span className="vtp-info-value">{vatText}</span>
-                </div>
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">Tổng tiền</span>
-                  <span className="vtp-info-value">{totalText}</span>
-                </div>
-              </div>
-
-              {/* Row 5 */}
-              <div className="vtp-info-row">
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">Thanh toán</span>
-                  <span className="vtp-info-value">{payText}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card 2: NGƯỜI NHẬN & NHÂN VIÊN */}
           <div className="vtp-card">
-            <div className="vtp-detail-section-title">NGƯỜI NHẬN & NHÂN VIÊN</div>
+            <div className="vtp-detail-section-title">NGƯỜI NHẬN</div>
 
             <div className="vtp-info-rows">
-              {/* Row 1 */}
               <div className="vtp-info-row">
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Người nhận</span>
@@ -207,8 +175,79 @@ export function OrderDetailPage() {
                   <span className="vtp-info-value">{receiverPhone}</span>
                 </div>
               </div>
+              <div className="vtp-info-row" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Địa chỉ</span>
+                  <span className="vtp-info-value">{order.receiverAddress || '-'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-              {/* Row 2 */}
+          <div style={{ marginTop: '16px' }}>
+            <button type="button" className="vtp-btn-outline" onClick={handlePrintLabel} disabled={labelLoading}>
+              {labelLoading && <span className="vtp-spinner" />}
+              {labelLoading ? 'Đang tạo nhãn...' : 'In nhãn PDF'}
+            </button>
+          </div>
+        </div>
+
+        {/* Column 2: Hàng hóa + Phí & thanh toán + NV xử lý */}
+        <div>
+          <div className="vtp-card" style={{ marginBottom: '16px' }}>
+            <div className="vtp-detail-section-title">THÔNG TIN HÀNG HÓA</div>
+
+            <div className="vtp-info-rows">
+              <div className="vtp-info-row">
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Hàng hóa</span>
+                  <span className="vtp-info-value">{order.productInfo || '-'}</span>
+                </div>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Trọng lượng</span>
+                  <span className="vtp-info-value">{weightText}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="vtp-card" style={{ marginBottom: '16px' }}>
+            <div className="vtp-detail-section-title">PHÍ & THANH TOÁN</div>
+
+            <div className="vtp-info-rows">
+              <div className="vtp-info-row">
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">COD</span>
+                  <span className="vtp-info-value">{codText}</span>
+                </div>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Tổng phí VC</span>
+                  <span className="vtp-info-value">{feeText}</span>
+                </div>
+              </div>
+              <div className="vtp-info-row">
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">VAT</span>
+                  <span className="vtp-info-value">{vatText}</span>
+                </div>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Tổng tiền</span>
+                  <span className="vtp-info-value">{totalText}</span>
+                </div>
+              </div>
+              <div className="vtp-info-row" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="vtp-info-item">
+                  <span className="vtp-info-label">Thanh toán</span>
+                  <span className="vtp-info-value">{payText}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="vtp-card">
+            <div className="vtp-detail-section-title">NHÂN VIÊN XỬ LÝ</div>
+
+            <div className="vtp-info-rows">
               <div className="vtp-info-row">
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">NV xử lý</span>
@@ -221,19 +260,11 @@ export function OrderDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Action button */}
-          <div style={{ marginTop: '16px' }}>
-            <button type="button" className="vtp-btn-outline" onClick={handlePrintLabel} disabled={labelLoading}>
-              {labelLoading && <span className="vtp-spinner" />}
-              {labelLoading ? 'Đang tạo nhãn...' : 'In nhãn PDF'}
-            </button>
-          </div>
         </div>
 
-        {/* Right Column: TIMELINE */}
+        {/* Column 3: HÀNH TRÌNH ĐƠN */}
         <div className="vtp-card">
-          <div className="vtp-detail-section-title">TIMELINE</div>
+          <div className="vtp-detail-section-title">HÀNH TRÌNH ĐƠN</div>
 
           <div className="vtp-timeline">
             {eventsList.length === 0 ? (
