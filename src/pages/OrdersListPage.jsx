@@ -107,32 +107,31 @@ export function OrdersListPage() {
     loadData();
   };
 
-  // Export orders to CSV file
-  const handleExportCSV = () => {
+  // Export orders to a real .xlsx file (not CSV) - avoids the classic "mở CSV bằng Excel thì vỡ
+  // dấu tiếng Việt" encoding problem entirely, since xlsx stores text as UTF-8 natively.
+  const handleExportExcel = async () => {
     const itemsToExport = data.items || [];
     if (itemsToExport.length === 0) {
       toast.info('Không có đơn nào để xuất');
       return;
     }
+    const XLSX = await import('xlsx');
     const headers = ['MÃ VTP', 'TRẠNG THÁI', 'NGƯỜI NHẬN', 'DỊCH VỤ', 'COD', 'CẬP NHẬT'];
     const rows = itemsToExport.map((o) => [
       o.vtpCode,
-      o.currentStatus || 'Chờ XL',
-      `"${o.receiverName || ''}"`,
+      getStatusBadgeInfo(o.currentStatus).label,
+      o.receiverName || '',
       o.serviceName || o.productInfo || 'VHT',
       o.cod != null ? o.cod : 0,
       new Date(o.currentStatusDate || Date.now()).toLocaleString('vi-VN'),
     ]);
 
-    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `NewHorizon_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success(`Đã xuất ${itemsToExport.length} đơn ra CSV`);
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    worksheet['!cols'] = [{ wch: 16 }, { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 12 }, { wch: 16 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, '\u0110\u01A1n h\u00E0ng');
+    XLSX.writeFile(workbook, `NewHorizon_Orders_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast.success(`\u0110\u00E3 xu\u1EA5t ${itemsToExport.length} \u0111\u01A1n ra Excel`);
   };
 
   const handlePrintSelected = async () => {
@@ -266,13 +265,13 @@ export function OrdersListPage() {
               Tìm
             </button>
 
-            <button type="button" className="vtp-btn-outline" onClick={handleExportCSV}>
+            <button type="button" className="vtp-btn-outline" onClick={handleExportExcel}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Export CSV
+              Export Excel
             </button>
 
             {selected.size > 0 && (
