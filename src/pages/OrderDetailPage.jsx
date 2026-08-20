@@ -98,8 +98,6 @@ export function OrderDetailPage() {
 
   const receiverName = order.receiverName || '-';
   const receiverPhone = order.receiverPhone || '-';
-  const actorName = order.actorName || '-';
-  const actorPhone = order.actorPhone || '-';
 
   const eventsList = order.events || [];
 
@@ -141,7 +139,7 @@ export function OrderDetailPage() {
               <div className="vtp-info-row">
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Trạng thái</span>
-                  <span className={`vtp-badge ${badgeInfo.className}`}>{statusLabel}</span>
+                  <span className={`vtp-badge ${badgeInfo.className}`}>{badgeInfo.label}</span>
                 </div>
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Dịch vụ</span>
@@ -207,7 +205,7 @@ export function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="vtp-card" style={{ marginBottom: '16px' }}>
+          <div className="vtp-card">
             <div className="vtp-detail-section-title">PHÍ & THANH TOÁN</div>
 
             <div className="vtp-info-rows">
@@ -235,23 +233,6 @@ export function OrderDetailPage() {
                 <div className="vtp-info-item">
                   <span className="vtp-info-label">Thanh toán</span>
                   <span className="vtp-info-value">{payText}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="vtp-card">
-            <div className="vtp-detail-section-title">NHÂN VIÊN XỬ LÝ</div>
-
-            <div className="vtp-info-rows">
-              <div className="vtp-info-row">
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">NV xử lý</span>
-                  <span className="vtp-info-value">{actorName}</span>
-                </div>
-                <div className="vtp-info-item">
-                  <span className="vtp-info-label">SĐT NV</span>
-                  <span className="vtp-info-value">{actorPhone}</span>
                 </div>
               </div>
             </div>
