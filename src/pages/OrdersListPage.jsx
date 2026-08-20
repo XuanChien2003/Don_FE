@@ -10,7 +10,6 @@ const SCAN_EVENT_LABELS = {
   nhap_kho: 'Nhập kho',
   xuat_kho: 'Xuất kho',
   ban_giao: 'Bàn giao',
-  tra_cuu: 'Tra cứu',
 };
 export function scanEventLabel(type) {
   return SCAN_EVENT_LABELS[type] || type || '-';
@@ -380,7 +379,7 @@ export function OrdersListPage() {
           <div className="vtp-detail-section-title">LƯỢT QUÉT KHO</div>
 
           <div className="vtp-stats-row">
-            {['nhap_kho', 'xuat_kho', 'ban_giao', 'tra_cuu'].map((type) => {
+            {['nhap_kho', 'xuat_kho', 'ban_giao'].map((type) => {
               const found = stats.scanStats.byEventType.find((s) => s.eventType === type);
               return (
                 <div className="vtp-stat-card" key={type}>
@@ -400,7 +399,6 @@ export function OrdersListPage() {
                   <th>NHẬP KHO</th>
                   <th>XUẤT KHO</th>
                   <th>BÀN GIAO</th>
-                  <th>TRA CỨU</th>
                   <th>TỔNG</th>
                   <th>NHÂN VIÊN GẦN NHẤT</th>
                   <th>QUÉT GẦN NHẤT</th>
@@ -409,7 +407,7 @@ export function OrdersListPage() {
               <tbody>
                 {stats.scanStats.byOrder.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="vtp-table-empty">
+                    <td colSpan={8} className="vtp-table-empty">
                       Chưa có lượt quét nào
                     </td>
                   </tr>
@@ -423,7 +421,6 @@ export function OrdersListPage() {
                       <td>{o.byEventType.nhap_kho || 0}</td>
                       <td>{o.byEventType.xuat_kho || 0}</td>
                       <td>{o.byEventType.ban_giao || 0}</td>
-                      <td>{o.byEventType.tra_cuu || 0}</td>
                       <td><strong>{o.total}</strong></td>
                       <td>{o.lastActorDisplayName || '-'}</td>
                       <td>{formatDate(o.lastScanAt)}</td>
