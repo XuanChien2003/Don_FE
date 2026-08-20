@@ -306,22 +306,6 @@ export function OrderDetailPage() {
         </div>
       )}
 
-      {false && pdfUrl && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Xem trước nhãn PDF"
-          style={{ position: 'fixed', inset: 0, zIndex: 1000, padding: '16px', background: 'rgba(15, 23, 42, 0.72)' }}
-        >
-          <div style={{ height: '100%', maxWidth: '920px', margin: '0 auto', display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: '12px', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '10px 14px', borderBottom: '1px solid #e2e8f0' }}>
-              <strong>Xem trước nhãn PDF</strong>
-              <button type="button" className="vtp-btn-outline" onClick={closePdfPreview}>Đóng</button>
-            </div>
-            <iframe title="Nhãn PDF" src={pdfUrl} style={{ width: '100%', flex: 1, border: 0 }} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

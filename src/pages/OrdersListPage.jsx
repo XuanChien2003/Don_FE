@@ -289,6 +289,24 @@ export function OrdersListPage() {
             <table className="vtp-table">
               <thead>
                 <tr>
+                  <th style={{ width: '36px' }}>
+                    <input
+                      type="checkbox"
+                      aria-label="Chọn tất cả đơn trên trang này"
+                      checked={data.items.length > 0 && data.items.every((o) => selected.has(o.vtpCode))}
+                      onChange={(e) => {
+                        setSelected((prev) => {
+                          const next = new Set(prev);
+                          if (e.target.checked) {
+                            data.items.forEach((o) => next.add(o.vtpCode));
+                          } else {
+                            data.items.forEach((o) => next.delete(o.vtpCode));
+                          }
+                          return next;
+                        });
+                      }}
+                    />
+                  </th>
                   <th>MÃ VTP</th>
                   <th>TRẠNG THÁI</th>
                   <th>NGƯỜI NHẬN</th>
@@ -300,13 +318,13 @@ export function OrdersListPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="vtp-table-empty">
+                    <td colSpan={7} className="vtp-table-empty">
                       <span className="vtp-spinner" /> Đang tải dữ liệu đơn hàng...
                     </td>
                   </tr>
                 ) : data.items.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="vtp-table-empty">
+                    <td colSpan={7} className="vtp-table-empty">
                       Không có đơn hàng nào
                     </td>
                   </tr>
@@ -315,6 +333,24 @@ export function OrdersListPage() {
                     const badge = getStatusBadgeInfo(order.currentStatus);
                     return (
                       <tr key={order.vtpCode}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            aria-label={`Chọn đơn ${order.vtpCode}`}
+                            checked={selected.has(order.vtpCode)}
+                            onChange={(e) => {
+                              setSelected((prev) => {
+                                const next = new Set(prev);
+                                if (e.target.checked) {
+                                  next.add(order.vtpCode);
+                                } else {
+                                  next.delete(order.vtpCode);
+                                }
+                                return next;
+                              });
+                            }}
+                          />
+                        </td>
                         <td className="vtp-order-code">
                           <Link to={`/orders/${order.vtpCode}`}>{order.vtpCode}</Link>
                         </td>
