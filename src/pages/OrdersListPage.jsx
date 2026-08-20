@@ -46,7 +46,15 @@ export function getStatusBadgeInfo(status) {
 function openPdfBlob(blob, targetWindow) {
   const url = URL.createObjectURL(blob);
   if (targetWindow) {
-    targetWindow.location.href = url;
+    // Navigating a tab's top-level location straight to a blob: PDF makes Chrome silently
+    // download it instead of rendering it - the tab is left blank with no visible sign anything
+    // happened. An <iframe> pointing at the same blob URL renders inline reliably instead.
+    targetWindow.document.title = 'Nhãn PDF';
+    targetWindow.document.body.style.margin = '0';
+    const iframe = targetWindow.document.createElement('iframe');
+    iframe.src = url;
+    iframe.style.cssText = 'border:0;width:100vw;height:100vh;display:block';
+    targetWindow.document.body.appendChild(iframe);
   } else {
     window.open(url, '_blank', 'noopener');
   }
