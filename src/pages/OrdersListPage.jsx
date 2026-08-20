@@ -12,12 +12,19 @@ const SCAN_EVENT_LABELS = {
   ban_giao: 'Bàn giao',
   tra_cuu: 'Tra cứu',
 };
-function scanEventLabel(type) {
+export function scanEventLabel(type) {
   return SCAN_EVENT_LABELS[type] || type || '-';
 }
 
 export function getStatusBadgeInfo(status) {
   if (!status) return { label: 'Chờ XL', className: 'badge-secondary' };
+  // currentStatus is either VTP's free-text webhook status or, for orders whose latest event is
+  // a scan, the raw scan eventType itself (see deriveStatusFromEvent in orderStatus.service.js) -
+  // map those known exact values to a proper label before falling through to keyword matching.
+  if (status === 'imported') return { label: 'Mới nhập', className: 'badge-secondary' };
+  if (SCAN_EVENT_LABELS[status]) {
+    return { label: SCAN_EVENT_LABELS[status], className: 'badge-info' };
+  }
   const s = String(status).toLowerCase();
   if (s.includes('đang vc') || s.includes('vận chuyển') || s.includes('dang vc')) {
     return { label: 'Đang VC', className: 'badge-warning' };
@@ -364,8 +371,10 @@ export function OrdersListPage() {
         </div>
       </div>
 
-      {/* Admin-only: scan activity by event type + by employee (scanners aren't tied to a
-          partner, so this stays out of the partner view). */}
+      {/* Admin-only: scan activity by event type + by order, with the employee who scanned it
+          most recently (scanners aren't tied to a partner, so this stays out of the partner
+          view). Shows the SCAN_STATS_ORDER_LIMIT most recently-scanned orders - click through to
+          an order's own detail page for its full timeline. */}
       {user?.role === 'admin' && stats?.scanStats && (
         <div className="vtp-card" style={{ marginTop: '16px' }}>
           <div className="vtp-detail-section-title">LƯỢT QUÉT KHO</div>
@@ -386,32 +395,38 @@ export function OrdersListPage() {
             <table className="vtp-table">
               <thead>
                 <tr>
-                  <th>NHÂN VIÊN</th>
+                  <th>MÃ VTP</th>
+                  <th>NGƯỜI NHẬN</th>
                   <th>NHẬP KHO</th>
                   <th>XUẤT KHO</th>
                   <th>BÀN GIAO</th>
                   <th>TRA CỨU</th>
                   <th>TỔNG</th>
+                  <th>NHÂN VIÊN GẦN NHẤT</th>
                   <th>QUÉT GẦN NHẤT</th>
                 </tr>
               </thead>
               <tbody>
-                {stats.scanStats.byEmployee.length === 0 ? (
+                {stats.scanStats.byOrder.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="vtp-table-empty">
+                    <td colSpan={9} className="vtp-table-empty">
                       Chưa có lượt quét nào
                     </td>
                   </tr>
                 ) : (
-                  stats.scanStats.byEmployee.map((emp) => (
-                    <tr key={emp.actorPublicId || emp.displayName}>
-                      <td>{emp.displayName}</td>
-                      <td>{emp.byEventType.nhap_kho || 0}</td>
-                      <td>{emp.byEventType.xuat_kho || 0}</td>
-                      <td>{emp.byEventType.ban_giao || 0}</td>
-                      <td>{emp.byEventType.tra_cuu || 0}</td>
-                      <td><strong>{emp.total}</strong></td>
-                      <td>{formatDate(emp.lastScanAt)}</td>
+                  stats.scanStats.byOrder.map((o) => (
+                    <tr key={o.vtpCode}>
+                      <td className="vtp-order-code">
+                        <Link to={`/orders/${o.vtpCode}`}>{o.vtpCode}</Link>
+                      </td>
+                      <td>{o.receiverName || '-'}</td>
+                      <td>{o.byEventType.nhap_kho || 0}</td>
+                      <td>{o.byEventType.xuat_kho || 0}</td>
+                      <td>{o.byEventType.ban_giao || 0}</td>
+                      <td>{o.byEventType.tra_cuu || 0}</td>
+                      <td><strong>{o.total}</strong></td>
+                      <td>{o.lastActorDisplayName || '-'}</td>
+                      <td>{formatDate(o.lastScanAt)}</td>
                     </tr>
                   ))
                 )}

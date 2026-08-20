@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { fetchLabelBarcode, fetchLabelPdf, getOrderDetail } from '../api/orders';
-import { getStatusBadgeInfo } from './OrdersListPage';
+import { getStatusBadgeInfo, scanEventLabel } from './OrdersListPage';
 import { useToast } from '../components/Toast';
 
 export function OrderDetailPage() {
@@ -273,7 +273,13 @@ export function OrderDetailPage() {
                 <div key={idx} className="vtp-timeline-item">
                   <div className={`vtp-timeline-node ${idx === 0 ? 'filled' : ''}`} />
                   <div className="vtp-timeline-time">{new Date(item.eventTime).toLocaleString('vi-VN')}</div>
-                  <div className="vtp-timeline-title">{item.eventType || item.source || 'Sự kiện'}</div>
+                  <div className="vtp-timeline-title">
+                    {item.source === 'scan_pda'
+                      ? scanEventLabel(item.eventType)
+                      : item.source === 'import'
+                      ? 'Nhập đơn vào hệ thống'
+                      : item.externalStatus || item.eventType || item.source || 'Sự kiện'}
+                  </div>
                   {item.actor?.displayName && (
                     <div className="vtp-timeline-subtext">Nhân viên: {item.actor.displayName}</div>
                   )}
