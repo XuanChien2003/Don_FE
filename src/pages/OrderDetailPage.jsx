@@ -264,8 +264,8 @@ export function OrderDetailPage() {
                   {item.actor?.displayName && (
                     <div className="vtp-timeline-subtext">Nhân viên: {item.actor.displayName}</div>
                   )}
-                  {item.location && <div className="vtp-timeline-subtext">{item.location}</div>}
-                  {item.note && <div className="vtp-timeline-subtext">{item.note}</div>}
+                  {item.location && <div className="vtp-timeline-subtext">Vị trí: {item.location}</div>}
+                  {item.note && <div className="vtp-timeline-subtext">Ghi chú: {item.note}</div>}
                 </div>
               ))
             )}
